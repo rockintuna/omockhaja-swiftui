@@ -8,14 +8,54 @@
 import SwiftUI
 
 struct ContentView: View {
+    @ObservedObject var webSocketManager = WebSocketManager()
+        
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-            Text("Hello, world!")
+        NavigationStack {
+            VStack {
+                HStack {
+                    Image(systemName: "circle.fill")
+                        .imageScale(.large)
+                        .foregroundColor(.black)
+                    Image(systemName: "circle")
+                        .imageScale(.large)
+                        .foregroundColor(.black)
+                    Image(systemName: "circle")
+                        .imageScale(.large)
+                        .foregroundColor(.black)
+                    Image(systemName: "circle")
+                        .imageScale(.large)
+                        .foregroundColor(.black)
+                    Image(systemName: "circle.fill")
+                        .imageScale(.large)
+                        .foregroundColor(.black)
+                }
+                Text("오목하자")
+                    .font(.largeTitle)
+                    .fontWeight(.regular)
+                    .foregroundColor(Color.black)
+                    .padding(.bottom, 50)
+                    .padding(10)
+                NavigationLink(destination: DetailView()) {
+                    Button {
+                        webSocketManager.connect()
+                    } label: {
+                        Text("시작하기")
+                            .foregroundColor(Color.white)
+                            .padding(10)
+                            .background(.black)
+                            .cornerRadius(13)
+                    }
+                }
+            }
+            .padding()
         }
-        .padding()
+    }
+}
+
+struct DetailView: View {
+    var body: some View {
+        Text("This is the Detail View")
     }
 }
 
