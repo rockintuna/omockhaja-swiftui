@@ -13,18 +13,17 @@ struct ContentView: View {
         
     var body: some View {
         VStack {
-            Text(String(webSocketManager.connected))
             if webSocketManager.connected {
                 WaitingView()
             } else {
-                MainView()
+                MainView(webSocketManager: webSocketManager)  // ✅ 동일한 인스턴스를 넘겨줌
             }
         }
     }
 }
 
 struct MainView: View {
-    var webSocketManager = WebSocketManager()
+    @ObservedObject var webSocketManager: WebSocketManager
     
     var body: some View {
         VStack {
@@ -68,7 +67,7 @@ struct MainView: View {
 
 struct WaitingView: View {
     var body: some View {
-        Text("This is the Detail View")
+        Text("상대방을 찾는 중")
     }
 }
 

@@ -26,9 +26,6 @@ class WebSocketManager: ObservableObject {
     }
     
     func receiveMessage() {
-        print("connected : " + String(connected))
-        print("matched : " + String(matched))
-        print("matchId : " + (matchId ?? "nil"))
         webSocketTask?.receive { [weak self] result in
             switch result {
             case .failure(let error):
