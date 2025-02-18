@@ -12,28 +12,50 @@ class WebSocketManager: ObservableObject {
     private var webSocketTask: URLSessionWebSocketTask?
     private var cancellables: Set<AnyCancellable> = []
     
-    @Published var receivedMessage: String?
+    @Published var connected: Bool = false
+    @Published var matched: Bool = false
+    @Published var matchId: String?
     
     func connect() {
         let url = URL(string: "ws://localhost:8080")!
         let webSocketTask = URLSession.shared.webSocketTask(with: url)
+        print("websocket connect to " + url.absoluteString)
         self.webSocketTask = webSocketTask
         webSocketTask.resume()
+        receiveMessage()
     }
     
     func receiveMessage() {
+        print("connected : " + String(connected))
+        print("matched : " + String(matched))
+        print("matchId : " + (matchId ?? "nil"))
         webSocketTask?.receive { [weak self] result in
             switch result {
             case .failure(let error):
                 print("Error receiving message: \(error)")
             case .success(.string(let message)):
                 DispatchQueue.main.async {
-                    self?.receivedMessage = message
+                    self?.handleMessage(message)
                 }
-                self?.receiveMessage() // continue listening for new messages
+                self?.receiveMessage()
             case .success:
-                break // handle other message types
+                print("binary data Received.")
+                break
             }
+        }
+    }
+    
+    private func handleMessage(_ message: String) {
+        if message == "hello" {
+            print(message)
+            connected = true
+        }
+        if message.hasPrefix("match:") {
+            print(message)
+            matched = true
+            let matchIdIndex = message.index(message.startIndex, offsetBy: 6)
+            matchId = String(message[matchIdIndex...])
+            print(matchId ?? "matchId: nil")
         }
     }
     
@@ -48,5 +70,6 @@ class WebSocketManager: ObservableObject {
     
     func disconnect() {
         webSocketTask?.cancel(with: .goingAway, reason: nil)
+        webSocketTask = nil
     }
 }
