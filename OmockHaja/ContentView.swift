@@ -98,6 +98,7 @@ struct ContentView_Previews: PreviewProvider {
 import SwiftUI
 
 struct StonePosition: Hashable {
+    let color: Color
     let row: Int
     let col: Int
 }
@@ -105,13 +106,23 @@ struct StonePosition: Hashable {
 struct GoBoardView: View {
     let boardSize = 19
     let cellSize: CGFloat = 20
+    
+    @ObservedObject var webSocketManager = WebSocketManager()
     @State private var stones: Set<StonePosition> = []
     @State private var highlightedStone: StonePosition?
     @State private var isMyTurn: Bool = false // 내 턴인지 아닌지 나타내는 상태
+    @State private var myColor: Color?
     
     var body: some View {
         VStack {
             ZStack {
+                //
+                if isMyTurn {
+                    Text("내 차례")
+                } else {
+                    Text("상대 차례")
+                }
+                
                 // 바둑판 (격자)
                 VStack(spacing: 0) {
                     ForEach(0..<boardSize, id: \.self) { row in
@@ -132,7 +143,7 @@ struct GoBoardView: View {
                 
                 // 실제 돌들
                 ForEach(Array(stones), id: \.self) { stone in
-                    StoneView(color: .black, size: cellSize * 0.8)
+                    StoneView(color: stone.color, size: cellSize * 0.8)
                         .position(x: CGFloat(stone.col) * cellSize,
                                   y: CGFloat(stone.row) * cellSize)
                 }
@@ -144,7 +155,20 @@ struct GoBoardView: View {
             .onTapGesture { location in
                 let row = Int(round(location.y / cellSize))
                 let col = Int(round(location.x / cellSize))
-                highlightedStone = StonePosition(row: row, col: col)
+                highlightedStone = StonePosition(color: .yellow, row: row, col: col)
+            }
+            .onAppear {
+                print("GoBoardView가 화면에 나타남!")
+                print(String(webSocketManager.color ?? "color : nil"))
+                if webSocketManager.color == "B" {
+                    print("흑돌")
+                    isMyTurn = true
+                    myColor = .black
+                    let _ = print("isMyTurn: ", isMyTurn)
+                } else {
+                    print("백돌")
+                    myColor = .white
+                }
             }
             
             // 방향키 버튼으로 미리보기 돌 위치 변경 (왼쪽에 배치, 크기 크게)
@@ -199,8 +223,11 @@ struct GoBoardView: View {
                 // 확인 버튼 (오른쪽에 배치)
                 Button("확인") {
                     if let highlight = highlightedStone {
-                        if !stones.contains(highlight) {
-                            stones.insert(highlight)
+                        let stoneColor: Color = myColor ?? .black
+                        let newStone = StonePosition(color: stoneColor, row: highlight.row, col: highlight.col)
+
+                        if !stones.contains(newStone) {
+                            stones.insert(newStone)
                             isMyTurn.toggle()
                         }
                         highlightedStone = nil
@@ -223,7 +250,7 @@ struct GoBoardView: View {
         let newRow = max(0, min(boardSize - 1, highlight.row + rowDelta))
         let newCol = max(0, min(boardSize - 1, highlight.col + colDelta))
         
-        highlightedStone = StonePosition(row: newRow, col: newCol)
+        highlightedStone = StonePosition(color: .yellow, row: newRow, col: newCol)
     }
 }
 

@@ -16,6 +16,9 @@ class WebSocketManager: ObservableObject {
     @Published var matched: Bool = false
     @Published var matchId: String?
     
+    //todo fix color : nil
+    var color: String?
+    
     func connect() {
         let url = URL(string: "ws://localhost:8080")!
         let webSocketTask = URLSession.shared.webSocketTask(with: url)
@@ -50,7 +53,10 @@ class WebSocketManager: ObservableObject {
         if message.hasPrefix("match:") {
             print(message)
             matched = true
-            let matchIdIndex = message.index(message.startIndex, offsetBy: 6)
+            let colorIndex = message.index(message.startIndex, offsetBy: 6)
+            color = String(message[colorIndex])
+
+            let matchIdIndex = message.index(message.startIndex, offsetBy: 8)
             matchId = String(message[matchIdIndex...])
             print(matchId ?? "matchId: nil")
         }
