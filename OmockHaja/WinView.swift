@@ -6,10 +6,14 @@
 //
 import SwiftUI
 
-struct WinView: View {
-    let message: String
+struct GameOverView: View {
+    let win: Bool
     
     var body: some View {
-        Text("Win")
+        if win {
+            Text("You Win")
+        } else {
+            Text("You Loose")
+        }
     }
 }

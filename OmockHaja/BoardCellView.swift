@@ -1,3 +1,11 @@
+//
+//  BoardCellView.swift
+//  OmockHaja
+//
+//  Created by 이정인 on 2/21/25.
+//
+import SwiftUI
+
 // 격자(Cell) View
 struct BoardCellView: View {
     var size: CGFloat

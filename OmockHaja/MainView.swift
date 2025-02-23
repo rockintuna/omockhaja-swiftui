@@ -1,3 +1,11 @@
+//
+//  MainView.swift
+//  OmockHaja
+//
+//  Created by 이정인 on 2/21/25.
+//
+import SwiftUI
+
 struct MainView: View {
     @ObservedObject var webSocketManager: WebSocketManager
     

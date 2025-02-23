@@ -1,3 +1,11 @@
+//
+//  GoBoardView.swift
+//  OmockHaja
+//
+//  Created by 이정인 on 2/21/25.
+//
+import SwiftUI
+
 struct GoBoardView: View {
     let boardSize = 19
     let cellSize: CGFloat = 20
@@ -7,8 +15,24 @@ struct GoBoardView: View {
     @State private var highlightedStone: StonePosition?
     @State private var isMyTurn: Bool = false // 내 턴인지 아닌지 나타내는 상태
     @State private var myColor: Color?
+    @State private var isGameOver: Bool = false // 승리 여부 상태 추가
     
     var body: some View {
+            VStack {
+                if let win = webSocketManager.win {
+                    GameOverView(win: win)
+                } else {
+                    gameBoardView
+                }
+            }
+            .onReceive(webSocketManager.$win) { win in
+                if win != nil {
+                    isGameOver = true
+                }
+            }
+        }
+    
+    private var gameBoardView: some View {
         VStack {
             if isMyTurn {
                 Text("내 차례")
@@ -18,9 +42,9 @@ struct GoBoardView: View {
             ZStack {
                 // 바둑판 (격자)
                 VStack(spacing: 0) {
-                    ForEach(0..<boardSize, id: \.self) { row in
+                    ForEach(0..<boardSize - 1, id: \.self) { row in
                         HStack(spacing: 0) {
-                            ForEach(0..<boardSize, id: \.self) { col in
+                            ForEach(0..<boardSize - 1, id: \.self) { col in
                                 BoardCellView(size: cellSize)
                             }
                         }
@@ -41,14 +65,20 @@ struct GoBoardView: View {
                                   y: CGFloat(stone.row) * cellSize)
                 }
             }
-            .frame(width: CGFloat(boardSize) * cellSize,
-                   height: CGFloat(boardSize) * cellSize)
+            .onReceive(webSocketManager.$newStone) { stone in
+                if stone != nil {
+                    isMyTurn = true
+                    stones.insert(stone!)
+                }
+            }
+            .frame(width: CGFloat(boardSize - 1) * cellSize,
+                   height: CGFloat(boardSize - 1) * cellSize)
             .padding()
             .background(Color.brown)
             .onTapGesture { location in
                 guard isMyTurn else { return } // 내 차례일 때만 실행
-                let row = Int(round(location.y / cellSize))
-                let col = Int(round(location.x / cellSize))
+                let row = Int(round(location.y / cellSize) - 1)
+                let col = Int(round(location.x / cellSize) - 1)
                 highlightedStone = StonePosition(color: .yellow, row: row, col: col)
             }
             .onAppear {
@@ -116,16 +146,17 @@ struct GoBoardView: View {
                 
                 // 확인 버튼 (오른쪽에 배치)
                 Button("확인") {
-                    if let highlight = highlightedStone {
-                        let stoneColor: Color = myColor ?? .black
-                        let newStone = StonePosition(color: stoneColor, row: highlight.row, col: highlight.col)
+                    guard let highlight = highlightedStone else {return}
 
-                        if !stones.contains(newStone) {
-                            stones.insert(newStone)
-                            isMyTurn.toggle()
-                        }
-                        highlightedStone = nil
+                    let stoneColor: Color = myColor ?? .black
+                    let newStone = StonePosition(color: stoneColor, row: highlight.row, col: highlight.col)
+
+                    if !stones.contains(newStone) {
+                        stones.insert(newStone)
+                        isMyTurn.toggle()
+                        webSocketManager.sendStonePosition(highlight.row,highlight.col)
                     }
+                    highlightedStone = nil
                 }
                 .padding()
                 .background(Color.black)
@@ -139,15 +170,19 @@ struct GoBoardView: View {
     
     // 미리보기 돌 이동 함수
     func movePreviewStone(rowDelta: Int, colDelta: Int) {
-        guard var highlight = highlightedStone else { return }
+        guard let highlight = highlightedStone else { return }
         
         let newRow = max(0, min(boardSize - 1, highlight.row + rowDelta))
         let newCol = max(0, min(boardSize - 1, highlight.col + colDelta))
         
         highlightedStone = StonePosition(color: .yellow, row: newRow, col: newCol)
-        if highlightedStone != nil {
-            print ("row", highlightedStone!.row)
-            print ("col", highlightedStone!.col)
-        }
+        print ("row", highlight.row)
+        print ("col", highlight.col)
+    }
+}
+
+struct GoBoardView_Previews: PreviewProvider {
+    static var previews: some View {
+        GoBoardView(webSocketManager: WebSocketManager())
     }
 }

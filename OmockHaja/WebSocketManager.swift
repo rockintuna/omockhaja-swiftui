@@ -14,9 +14,10 @@ class WebSocketManager: ObservableObject {
     
     @Published var connected: Bool = false
     @Published var matched: Bool = false
-    @Published var matchId: String?
+    @Published var matchId: String = ""
+    @Published var newStone: StonePosition?
+    @Published var win: Bool?
     
-    //todo fix color : nil
     var color: String?
     
     func connect() {
@@ -53,12 +54,43 @@ class WebSocketManager: ObservableObject {
         if message.hasPrefix("match:") {
             print(message)
             matched = true
-            let colorIndex = message.index(message.startIndex, offsetBy: 6)
-            color = String(message[colorIndex])
+            let parts = message.split(separator: ":")
+            color = String(parts[1])
+            matchId = String(parts[2])
+            print(matchId)
+        }
+        if message.hasPrefix("update:") {
+            print(message)
+            let parts = message.split(separator: ":")
+            guard parts.count > 4,
+                  let row = Int(parts[3]), let col = Int(parts[4]) else {
+                print("Error: Invalid message format")
+                return
+            }
 
-            let matchIdIndex = message.index(message.startIndex, offsetBy: 8)
-            matchId = String(message[matchIdIndex...])
-            print(matchId ?? "matchId: nil")
+            if parts[2] == "B" {
+                newStone = StonePosition(color: .black, row: row, col: col)
+            } else {
+                newStone = StonePosition(color: .white, row: row, col: col)
+            }
+        }
+        if message.hasPrefix("win") {
+            win = true
+        }
+        if message.hasPrefix("loose") {
+            win = false
+        }
+    }
+    
+    func sendStonePosition(_ row: Int, _ col: Int) {
+        print("send stone position message.")
+        let payload = "\(self.matchId):\(color!):\(row):\(col)"
+        let message = URLSessionWebSocketTask.Message.string(payload)
+        
+        webSocketTask?.send(message) { error in
+            if let error = error {
+                print("Error sending message: \(error)")
+            }
         }
     }
     
