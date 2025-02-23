@@ -42,9 +42,12 @@ struct MainView: View {
                 Text("시작하기")
                     .foregroundColor(Color.white)
                     .padding(10)
-                    .background(.black)
+                    .background(Color.black)
                     .cornerRadius(13)
-            }
+            }.buttonStyle(PlainButtonStyle())
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity) // 전체 화면을 차지하도록 설정
+        .background(Color.white) // 배경색을 흰색으로 설정
+        .ignoresSafeArea() // 안전 영역을 무시하고 전체 화면 적용
     }
 }
