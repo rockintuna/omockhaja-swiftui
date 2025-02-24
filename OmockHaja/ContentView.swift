@@ -10,31 +10,44 @@ import SwiftUI
 struct ContentView: View {
     @ObservedObject var webSocketManager = WebSocketManager()
     @State var matchingReady = false;
+    @State private var isGameOver: Bool = false // 승리 여부 상태 추가
+    @State private var didWin: Bool = false
         
     var body: some View {
         VStack {
-            if webSocketManager.connected {
-                if webSocketManager.matched {
-                    if matchingReady {
-                        GoBoardView(webSocketManager: webSocketManager)
-                    } else {
-                        WaitingView(
-                            message: "상대방과 연결하는 중..."
-                        ).onAppear {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                                matchingReady = true
+            if isGameOver {
+                GameOverView(win: didWin) {
+                    goMainView()
+                }
+            } else {
+                if webSocketManager.connected {
+                    if webSocketManager.matched {
+                        if matchingReady {
+                            GoBoardView(webSocketManager: webSocketManager, isGameOver: $isGameOver, didWin: $didWin)
+                        } else {
+                            WaitingView(
+                                message: "상대방과 연결하는 중..."
+                            ).onAppear {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                    matchingReady = true
+                                }
                             }
                         }
+                    } else {
+                        WaitingView(message: "상대방을 찾는 중...")
                     }
-
+                
                 } else {
-                    WaitingView(message: "상대방을 찾는 중...")
+                    MainView(webSocketManager: webSocketManager)
                 }
-            
-            } else {
-                MainView(webSocketManager: webSocketManager)
             }
         }
+    }
+    
+    private func goMainView() {
+        isGameOver = false
+        matchingReady = false
+        webSocketManager.resetGame()
     }
 }
 

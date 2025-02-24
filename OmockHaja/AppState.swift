@@ -1,3 +1,11 @@
+//
+//  AppState.swift
+//  OmockHaja
+//
+//  Created by 이정인 on 2/24/25.
+//
+
+
 import SwiftUI
 
 class AppState: ObservableObject {

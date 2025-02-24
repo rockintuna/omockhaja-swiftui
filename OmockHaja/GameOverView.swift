@@ -8,12 +8,32 @@ import SwiftUI
 
 struct GameOverView: View {
     let win: Bool
+    let onRestart: () -> Void
+    
+    @Environment(\.presentationMode) var presentationMode
     
     var body: some View {
-        if win {
-            Text("You Win")
-        } else {
-            Text("You Loose")
+        VStack {
+            Text(win ? "You Win" : "You Lose")
+                .font(.largeTitle)
+                .padding()
+
+            Button {
+                onRestart()
+            } label: {
+                Text("메인으로")
+                    .foregroundColor(Color.white)
+                    .padding(10)
+                    .background(Color.black)
+                    .cornerRadius(13)
+            }
+            .buttonStyle(PlainButtonStyle())
         }
+    }
+}
+
+struct GameOverView_Previews: PreviewProvider {
+    static var previews: some View {
+        GameOverView(win: true, onRestart: {})
     }
 }

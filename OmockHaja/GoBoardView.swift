@@ -15,22 +15,20 @@ struct GoBoardView: View {
     @State private var highlightedStone: StonePosition?
     @State private var isMyTurn: Bool = false // 내 턴인지 아닌지 나타내는 상태
     @State private var myColor: Color?
-    @State private var isGameOver: Bool = false // 승리 여부 상태 추가
-    
+    @Binding var isGameOver: Bool
+    @Binding var didWin: Bool
+        
     var body: some View {
-            VStack {
-                if let win = webSocketManager.win {
-                    GameOverView(win: win)
-                } else {
-                    gameBoardView
-                }
-            }
-            .onReceive(webSocketManager.$win) { win in
-                if win != nil {
-                    isGameOver = true
-                }
+        VStack {
+            gameBoardView
+        }
+        .onReceive(webSocketManager.$win) { win in
+            if let win = win {
+                isGameOver = true
+                didWin = win
             }
         }
+    }
     
     private var gameBoardView: some View {
         VStack {
@@ -182,7 +180,14 @@ struct GoBoardView: View {
 }
 
 struct GoBoardView_Previews: PreviewProvider {
+    @State static var isGameOver = false
+    @State static var didWin = false
+
     static var previews: some View {
-        GoBoardView(webSocketManager: WebSocketManager())
+        GoBoardView(
+            webSocketManager: WebSocketManager(),
+            isGameOver: $isGameOver,
+            didWin: $didWin
+        )
     }
 }

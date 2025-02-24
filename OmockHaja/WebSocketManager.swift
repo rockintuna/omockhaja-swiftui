@@ -107,4 +107,8 @@ class WebSocketManager: ObservableObject {
         webSocketTask?.cancel(with: .goingAway, reason: nil)
         webSocketTask = nil
     }
+    
+    func resetGame() {
+        //todo clear resource
+    }
 }
