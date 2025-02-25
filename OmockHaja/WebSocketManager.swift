@@ -14,7 +14,7 @@ class WebSocketManager: ObservableObject {
     
     @Published var connected: Bool = false
     @Published var matched: Bool = false
-    @Published var matchId: String = ""
+    @Published var matchId: String?
     @Published var newStone: StonePosition?
     @Published var win: Bool?
     
@@ -57,7 +57,6 @@ class WebSocketManager: ObservableObject {
             let parts = message.split(separator: ":")
             color = String(parts[1])
             matchId = String(parts[2])
-            print(matchId)
         }
         if message.hasPrefix("update:") {
             print(message)
@@ -84,7 +83,7 @@ class WebSocketManager: ObservableObject {
     
     func sendStonePosition(_ row: Int, _ col: Int) {
         print("send stone position message.")
-        let payload = "\(self.matchId):\(color!):\(row):\(col)"
+        let payload = "\(matchId!):\(color!):\(row):\(col)"
         let message = URLSessionWebSocketTask.Message.string(payload)
         
         webSocketTask?.send(message) { error in
@@ -109,6 +108,10 @@ class WebSocketManager: ObservableObject {
     }
     
     func resetGame() {
-        //todo clear resource
+        disconnect()
+        connected = false
+        matched = false
+        newStone = nil
+        win = nil
     }
 }
